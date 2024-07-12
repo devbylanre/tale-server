@@ -9,17 +9,17 @@ const userTypeDefs = `#graphql
         lastName: String!
     }
     type Query {
-        users: [User]
-        user(userId: String!): User
+        users: [User!]
+        user(id: ID!): User
     }
     
-    input UpdateUserInput {
+    input UpdateUserPayload{
         firstName: String
         lastName: String
     }
     type Mutation {
-        updateUser(userId: String!, data: UpdateUserInput): User
-        deleteUser(userId: String!): User
+        updateUser(id: ID!, payload: UpdateUserPayload): User
+        deleteUser(id: ID!): User
     }
 `;
 

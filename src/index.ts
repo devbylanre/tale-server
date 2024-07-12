@@ -13,6 +13,8 @@ import categoryResolver from './resolvers/categoryResolver';
 import userTypeDefs from './schemas/userSchema';
 import authTypeDefs from './schemas/authSchema';
 import categoryTypeDefs from './schemas/categorySchema';
+import postTypeDefs from './schemas/postSchema';
+import postResolver from './resolvers/postResolver';
 
 const startServer = async () => {
   await mongooseConfig();
@@ -20,16 +22,37 @@ const startServer = async () => {
   const app = express();
 
   app.use(express.json());
-  app.use(cors({ origin: 'http://localhost:4000' }));
+  app.use(cors({ origin: 'http://localhost:3000' }));
 
-  const server = new ApolloServer({
-    typeDefs: [userTypeDefs, authTypeDefs, categoryTypeDefs],
-    resolvers: [userResolver, authResolver, categoryResolver],
+  const userServer = new ApolloServer({
+    typeDefs: userTypeDefs,
+    resolvers: userResolver,
   });
 
-  await server.start();
+  const authServer = new ApolloServer({
+    typeDefs: authTypeDefs,
+    resolvers: authResolver,
+  });
 
-  app.use('/', expressMiddleware(server));
+  const postServer = new ApolloServer({
+    typeDefs: postTypeDefs,
+    resolvers: postResolver,
+  });
+
+  const categoryServer = new ApolloServer({
+    typeDefs: categoryTypeDefs,
+    resolvers: categoryResolver,
+  });
+
+  await userServer.start();
+  await authServer.start();
+  await postServer.start();
+  await categoryServer.start();
+
+  app.use('/users/', expressMiddleware(userServer));
+  app.use('/auth/', expressMiddleware(authServer));
+  app.use('/posts/', expressMiddleware(postServer));
+  app.use('/categories/', expressMiddleware(categoryServer));
 
   const PORT = process.env.PORT || 4000;
 

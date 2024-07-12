@@ -13,56 +13,46 @@ const authTypeDefs = `#graphql
     
     type Token {
         _id: ID!
-        userId: ID!
+        user: ID!
         code: Int!
         expiresAt: Float!
     }
 
-    type SignInReturn {
-        accessToken: String!
-        refreshToken: String!
+    type Query {
+        ping: Boolean!
     }
 
-    type ResetEmailReturnType {
-        email: String!
-    }
-
-    type ResetPasswordReturnType {
-        password: String!
-    }
-
-    input SignInInput {
-        email: String!
-        password: String!
-    }
-
-    input SignUpInput {
+    input SignUpPayload {
         email: String!
         password: String!
         firstName: String!
         lastName: String!
-        role: String
-        status: String
     }
 
-    input ChangePasswordInput {
-        userId: String!
-        oldPassword: String!
-        newPassword: String!
+    type SignIn {
+        accessToken: String!
+        refreshToken: String!
+        user: User!
     }
 
-    input ChangeEmailInput {
-        userId: String!
+    input SignInPayload {
+        email: String!
+        password: String!
+    }
+
+    input ChangePasswordPayload {
+        password: String!
+    }
+
+    input ChangeEmailPayload {
         email: String!
     }
 
     type Mutation {
-        signUp(payload: SignUpInput): User
-        signIn(payload: SignInInput): SignInReturn
-        resetEmail(email: String!): Token
-        resetPassword(email: String!): Token
-        changePassword(payload: ChangePasswordInput): User
-        changeEmail(payload: ChangeEmailInput ): User
+        signUp(payload: SignUpPayload!): User
+        signIn(payload: SignInPayload!): SignIn
+        changeEmail(email: String!, payload: ChangeEmailPayload!): User
+        changePassword(email:String!, payload: ChangePasswordPayload!): User
     }
 `;
 

@@ -43,7 +43,7 @@ const postResolver = {
       _: unknown,
       args: {
         id: Post['_id'];
-        payload: Omit<Partial<Post>, '_id' | 'createdAt'>;
+        payload: Omit<Partial<Post>, '_id' | 'createdAt' | 'author'>;
       }
     ) => {
       let post = await Posts.findByIdAndUpdate(args.id, args.payload, {

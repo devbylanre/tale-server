@@ -1,4 +1,4 @@
-import User, { UserType } from '../models/user';
+import Users, { User } from '../models/user';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -6,12 +6,16 @@ import Tokens from '../models/token';
 
 const authResolver = {
   Mutation: {
-    signUp: async (_: any, args: { payload: UserType }) => {
-      const emailAlreadyExist = await User.findOne({
+    signUp: async (
+      _: any,
+      args: { payload: Omit<User, '_id' | 'status' | 'role'> }
+    ) => {
+      const emailAlreadyExist = await Users.findOne({
         email: args.payload.email,
       });
+
       if (emailAlreadyExist !== null) {
-        throw new Error('email already exists');
+        throw new Error('Email already exists');
       }
 
       const saltRound = 10;
@@ -20,7 +24,7 @@ const authResolver = {
         saltRound
       );
 
-      const user = new User({
+      const user = new Users({
         password: hashedPassword,
         email: args.payload.email,
         firstName: args.payload.firstName,
@@ -30,8 +34,12 @@ const authResolver = {
       await user.save();
       return user;
     },
-    signIn: async (_: unknown, args: { payload: UserType }) => {
-      const user = await User.findOne({ email: args.payload.email });
+
+    signIn: async (
+      _: unknown,
+      args: { payload: Pick<User, 'email' | 'password'> }
+    ) => {
+      const user = await Users.findOne({ email: args.payload.email });
 
       if (user === null) {
         throw new Error('Unable to find user');
@@ -59,106 +67,28 @@ const authResolver = {
 
       return { accessToken, refreshToken };
     },
-    resetEmail: async (_: unknown, args: { email: UserType['email'] }) => {
-      const user = await User.findOne({ email: args.email });
-
-      if (user === null) {
-        throw new Error('Could not find user');
-      }
-
-      let code = '';
-      for (let i = 0; i < 6; i++) {
-        const random = crypto.randomInt(1, 9);
-        code += random.toString();
-      }
-
-      // 24 hour expiration
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-      let token = await Tokens.findOne({ userId: user._id });
-
-      const payload = {
-        code: Number(code),
-        userId: user._id,
-        expiresAt: expiresAt,
-      };
-
-      if (token !== null) {
-        token = await Tokens.findByIdAndUpdate(token.id, payload, {
-          new: true,
-        });
-      } else {
-        token = new Tokens(payload);
-        token.save();
-      }
-
-      return token;
-    },
-    resetPassword: async (_: unknown, args: { email: UserType['email'] }) => {
-      const user = await User.findOne({ email: args.email });
-
-      if (user === null) {
-        throw new Error('Unable to find user');
-      }
-
-      let code = '';
-      for (let i = 0; i < 6; i++) {
-        const int = crypto.randomInt(1, 9);
-        code += int;
-      }
-
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      const payload = {
-        code: code,
-        userId: user._id,
-        expiresAt: expiresAt,
-      };
-
-      let token = await Tokens.findOne({ userId: user._id });
-
-      if (token !== null) {
-        token = await Tokens.findByIdAndUpdate(token._id, payload, {
-          new: true,
-        });
-      } else {
-        token = new Tokens(payload);
-        await token.save();
-      }
-
-      return token;
-    },
     changePassword: async (
       _: unknown,
       args: {
+        email: User['email'];
         payload: {
-          userId: UserType['_id'];
-          oldPassword: UserType['password'];
-          newPassword: UserType['password'];
+          password: User['password'];
         };
       }
     ) => {
-      let user = await User.findById(args.payload.userId);
+      let user = await Users.findOne({ email: args.email });
 
       if (user === null) {
         throw new Error('Could not find user');
-      }
-
-      const isPasswordValid = await bcrypt.compare(
-        args.payload.oldPassword,
-        user.password
-      );
-
-      if (!isPasswordValid) {
-        throw new Error('Invalid old password');
       }
 
       const saltRound = 10;
       const hashedPassword = await bcrypt.hash(
-        args.payload.newPassword,
+        args.payload.password,
         saltRound
       );
 
-      user = await User.findByIdAndUpdate(user._id, {
+      user = await Users.findByIdAndUpdate(user._id, {
         password: hashedPassword,
       });
 
@@ -170,19 +100,17 @@ const authResolver = {
     },
     changeEmail: async (
       _: unknown,
-      args: { payload: { userId: UserType['_id']; email: UserType['email'] } }
+      args: { email: User['email']; payload: { email: User['email'] } }
     ) => {
-      let user = await User.findById(args.payload.userId);
+      let user = await Users.findOne({ email: args.email });
 
       if (user === null) {
         throw new Error('Could not find user');
       }
 
-      user = await User.findByIdAndUpdate(
+      user = await Users.findByIdAndUpdate(
         user._id,
-        {
-          email: args.payload.email,
-        },
+        { email: args.payload.email },
         { new: true }
       );
 

@@ -1,4 +1,4 @@
-import Categories, { CategoryType } from '../models/category';
+import Categories, { Category } from '../models/category';
 
 const categoryResolver = {
   Query: {
@@ -11,7 +11,7 @@ const categoryResolver = {
 
       return categories;
     },
-    category: async (_: unknown, args: { id: CategoryType['_id'] }) => {
+    category: async (_: unknown, args: { id: Category['_id'] }) => {
       const category = await Categories.findById(args.id);
 
       if (category === null) {
@@ -22,20 +22,17 @@ const categoryResolver = {
     },
   },
   Mutation: {
-    createCategory: async (_: unknown, args: CategoryType) => {
-      let category = await Categories.findOne({ title: args.title });
+    createCategory: async (
+      _: unknown,
+      args: { payload: Omit<Category, '_id'> }
+    ) => {
+      let category = await Categories.findOne({ title: args.payload.title });
 
       if (category !== null) {
-        category = await Categories.findByIdAndUpdate(category._id, args, {
-          new: true,
-        });
+        throw new Error('Category already exists');
       } else {
-        category = new Categories(args);
+        category = new Categories(args.payload);
         category.save();
-      }
-
-      if (category === null) {
-        throw new Error('Error creating category');
       }
 
       return category;
@@ -43,7 +40,7 @@ const categoryResolver = {
 
     updateCategory: async (
       _: unknown,
-      args: { id: string; payload: Omit<Partial<CategoryType>, '_id'> }
+      args: { id: string; payload: Omit<Partial<Category>, '_id'> }
     ) => {
       const category = await Categories.findByIdAndUpdate(
         args.id,
@@ -58,7 +55,7 @@ const categoryResolver = {
       return category;
     },
 
-    deleteCategory: async (_: unknown, args: { id: CategoryType['_id'] }) => {
+    deleteCategory: async (_: unknown, args: { id: Category['_id'] }) => {
       const category = await Categories.findByIdAndDelete(args.id, {
         new: true,
       });

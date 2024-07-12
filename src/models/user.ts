@@ -1,6 +1,6 @@
 import mongoose, { Schema, Types } from 'mongoose';
 
-export type UserType = {
+export type User = {
   _id: Types.ObjectId;
   email: string;
   password: string;
@@ -10,7 +10,7 @@ export type UserType = {
   status: 'deactivated' | 'activated' | 'pending';
 };
 
-const schema = new Schema<UserType>({
+const schema = new Schema<User>({
   email: { type: String, required: true },
   password: { type: String, required: true },
   lastName: { type: String, required: true, lowercase: true },
@@ -19,5 +19,5 @@ const schema = new Schema<UserType>({
   status: { type: String, required: true, lowercase: true, default: 'pending' },
 });
 
-const User = mongoose.model('User', schema);
-export default User;
+const Users = mongoose.model<User>('User', schema);
+export default Users;
