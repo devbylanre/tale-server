@@ -16,8 +16,8 @@ const schema = new Schema<Post>({
   image: { type: String, required: true },
   excerpt: { type: String, required: true },
   content: { type: Schema.Types.Mixed, required: true },
-  author: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
-  category: { type: Schema.Types.ObjectId, ref: 'Categories', required: true },
+  author: { type: Schema.Types.ObjectId, required: true, ref: 'Users' },
+  category: { type: Schema.Types.ObjectId, required: true, ref: 'Categories' },
   createdAt: { type: Date, required: true, default: Date.now() },
 });
 
