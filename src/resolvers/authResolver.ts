@@ -1,8 +1,6 @@
 import Users, { User } from '../models/user';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-import Tokens from '../models/token';
 
 const authResolver = {
   Mutation: {
