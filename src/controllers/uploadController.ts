@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import path from 'path';
 import crypto from 'crypto';
-import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage';
+import {
+  ref,
+  getStorage,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
 import firebaseApp from '../config/firebase';
 import Uploads from '../models/upload';
 import { Ext, isSupported } from '../utils/file';
@@ -92,4 +98,24 @@ const multiple = async ({ files, query }: Request, res: Response) => {
   }
 };
 
-export { single, multiple };
+const remove = async ({ params }: Request, res: Response) => {
+  const { id } = params;
+  try {
+    const upload = await Uploads.findById(id);
+
+    if (upload === null) {
+      throw new Error('No uploaded file found');
+    }
+
+    const fileRef = ref(storage, upload.path);
+
+    await deleteObject(fileRef);
+    await Uploads.findByIdAndDelete(id);
+
+    return res.status(200).json({ message: 'Upload deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ error: (error as Error).message });
+  }
+};
+
+export { single, multiple, remove };
