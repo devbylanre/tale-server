@@ -1,3 +1,6 @@
+import Comments from '../models/comment';
+import Posts from '../models/post';
+import Uploads from '../models/upload';
 import Users, { User } from '../models/user';
 
 const userResolver = {
@@ -20,6 +23,22 @@ const userResolver = {
       return user;
     },
   },
+
+  User: {
+    posts: async (parent: User) => {
+      const posts = await Posts.find({ author: parent._id });
+      return posts;
+    },
+    comments: async (parent: User) => {
+      const comments = await Comments.find({ author: parent._id });
+      return comments;
+    },
+    uploads: async (parent: User) => {
+      const uploads = await Uploads.find({ user: parent._id }).populate('user');
+      return uploads;
+    },
+  },
+
   Mutation: {
     updateUser: async (
       _: any,

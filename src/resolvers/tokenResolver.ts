@@ -25,8 +25,15 @@ const tokenResolver = {
     },
   },
 
+  Token: {
+    user: async (parent: Token) => {
+      const user = await Users.findById(parent.user);
+      return user;
+    },
+  },
+
   Mutation: {
-    new: async (_: unknown, args: { email: string }) => {
+    generateToken: async (_: unknown, args: { email: string }) => {
       const user = await Users.findOne({ email: args.email });
       const existingToken = await Tokens.findOne({
         user: user ? user._id : undefined,
@@ -65,7 +72,7 @@ const tokenResolver = {
           return newToken;
       }
     },
-    verify: async (
+    verifyToken: async (
       _: unknown,
       args: { email: string; payload: Pick<Token, 'code'> }
     ) => {

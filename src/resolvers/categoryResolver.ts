@@ -1,8 +1,10 @@
 import Categories, { Category } from '../models/category';
+import Posts from '../models/post';
 
 const categoryResolver = {
   Query: {
-    categories: async () => {
+    categories: async (_: unknown, __: unknown, context: any) => {
+      console.log(context);
       const categories = await Categories.find();
 
       if (categories.length === 0) {
@@ -21,6 +23,16 @@ const categoryResolver = {
       return category;
     },
   },
+
+  Category: {
+    posts: async (parent: Category) => {
+      const posts = await Posts.find({ category: parent._id })
+        .populate('author')
+        .populate('category');
+      return posts;
+    },
+  },
+
   Mutation: {
     createCategory: async (
       _: unknown,

@@ -1,3 +1,4 @@
+import Comments from '../models/comment';
 import Posts, { Post } from '../models/post';
 
 const postResolver = {
@@ -19,6 +20,23 @@ const postResolver = {
       }
 
       return post;
+    },
+  },
+
+  Post: {
+    author: async (parent: Post) => {
+      const post = await Posts.findById(parent._id).populate('author');
+      return post?.author;
+    },
+    category: async (parent: Post) => {
+      const post = await Posts.findById(parent._id).populate('category');
+      return post?.category;
+    },
+    comments: async (parent: Post) => {
+      const comments = await Comments.find({ post: parent._id })
+        .populate('author')
+        .populate('post');
+      return comments;
     },
   },
 

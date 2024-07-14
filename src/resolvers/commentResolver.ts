@@ -1,4 +1,6 @@
 import Comments, { Comment } from '../models/comment';
+import Posts from '../models/post';
+import Users from '../models/user';
 
 const commentResolver = {
   Query: {
@@ -19,6 +21,19 @@ const commentResolver = {
       }
 
       return comment;
+    },
+  },
+
+  Comment: {
+    author: async (parent: Comment) => {
+      const author = await Users.findById(parent.author);
+      return author;
+    },
+    post: async (parent: Comment) => {
+      const post = await Posts.findById(parent.post)
+        .populate('author')
+        .populate('category');
+      return post;
     },
   },
 
