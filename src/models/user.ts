@@ -19,5 +19,5 @@ const schema = new Schema<User>({
   status: { type: String, required: true, lowercase: true, default: 'pending' },
 });
 
-const Users = mongoose.model<User>('User', schema);
+const Users = mongoose.model<User>('Users', schema);
 export default Users;

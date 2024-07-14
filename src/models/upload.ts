@@ -6,6 +6,7 @@ export type Upload = {
   path: string;
   size: number;
   uri: string;
+  user: Types.ObjectId;
   createdAt: Date;
 };
 
@@ -14,6 +15,7 @@ const schema = new Schema<Upload>({
   path: { type: String, required: true },
   size: { type: Number, required: true },
   uri: { type: String, required: true },
+  user: { type: Schema.Types.ObjectId, required: true, ref: 'Users' },
   createdAt: { type: Date, required: true, default: Date.now() },
 });
 
