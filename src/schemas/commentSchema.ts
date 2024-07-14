@@ -2,8 +2,8 @@ const commentTypeDefs = `#graphql
     type Comment {
         _id: ID
         content: String!
-        author: ID!
-        post: ID!
+        author: User
+        post: Post
         createdAt: Float
     }
     

@@ -1,7 +1,7 @@
 const tokenTypeDefs = `#graphql
     type Token {
         _id: ID!
-        user: ID!
+        user: User
         code: Int!
         expiresAt: Float!
     }
@@ -16,8 +16,8 @@ const tokenTypeDefs = `#graphql
     }
 
     type Mutation {
-        new(email: String!): Token!
-        verify(email: String!, payload: VerifyPayload!): Token!
+        generateToken(email: String!): Token!
+        verifyToken(email: String!, payload: VerifyPayload!): Token!
     }
 `;
 

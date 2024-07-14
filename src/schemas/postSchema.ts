@@ -1,13 +1,14 @@
-const postTypeDefs = `#graphql 
+const postTypeDefs = `#graphql
     type Post {
         _id: ID!
         title: String!
         image: String!
         excerpt: String!
         content: String!
-        author: ID!
-        category: ID!
+        author: User
+        category: Category
         createdAt: Float!
+        comments: [Comment]
     }
 
     type Query {

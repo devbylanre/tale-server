@@ -7,6 +7,9 @@ const userTypeDefs = `#graphql
         password: String!
         firstName: String!
         lastName: String!
+        posts: [Post]
+        comments: [Comment]
+        uploads: [Upload]
     }
     type Query {
         users: [User!]

@@ -1,9 +1,12 @@
+import { GraphQLObjectType } from 'graphql';
+
 const categoryTypeDefs = `#graphql 
     type Category {
         _id: ID!
         title: String!
         image: String!
         description: String!
+        posts: [Post]
     }
 
     type Query {

@@ -1,23 +1,6 @@
 import { GraphQLInt } from 'graphql';
 
 const authTypeDefs = `#graphql 
-    type User {
-        _id: ID!
-        role: String
-        status: String
-        email: String!
-        password: String!
-        firstName: String!
-        lastName: String!
-    }
-    
-    type Token {
-        _id: ID!
-        user: ID!
-        code: Int!
-        expiresAt: Float!
-    }
-
     type Query {
         ping: Boolean!
     }
@@ -32,7 +15,6 @@ const authTypeDefs = `#graphql
     type SignIn {
         accessToken: String!
         refreshToken: String!
-        user: User!
     }
 
     input SignInPayload {
