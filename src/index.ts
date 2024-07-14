@@ -2,7 +2,9 @@ import { ApolloServer } from '@apollo/server';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { expressMiddleware } from '@apollo/server/express4';
+import { GraphQLError } from 'graphql';
 
 dotenv.config();
 
@@ -20,8 +22,31 @@ import commentResolver from './resolvers/commentResolver';
 import tokenTypeDefs from './schemas/tokenSchema';
 import tokenResolver from './resolvers/tokenResolver';
 import uploadRoutes from './routes/uploadRoutes';
+import uploadTypeDefs from './schemas/uploadSchema';
+import uploadResolver from './resolvers/uploadResolver';
+import { upload } from './middleware/multerMiddleware';
 
 const startServer = async () => {
+  const typeDefs = [
+    userTypeDefs,
+    tokenTypeDefs,
+    authTypeDefs,
+    categoryTypeDefs,
+    commentTypeDefs,
+    postTypeDefs,
+    uploadTypeDefs,
+  ];
+
+  const resolvers = [
+    userResolver,
+    tokenResolver,
+    authResolver,
+    postResolver,
+    categoryResolver,
+    commentResolver,
+    uploadResolver,
+  ];
+
   await mongooseConfig();
 
   const app = express();
@@ -29,51 +54,41 @@ const startServer = async () => {
   app.use(express.json());
   app.use(cors({ origin: 'http://localhost:3000' }));
 
-  const userServer = new ApolloServer({
-    typeDefs: userTypeDefs,
-    resolvers: userResolver,
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
   });
 
-  const tokenServer = new ApolloServer({
-    typeDefs: tokenTypeDefs,
-    resolvers: tokenResolver,
-  });
+  await server.start();
 
-  const authServer = new ApolloServer({
-    typeDefs: authTypeDefs,
-    resolvers: authResolver,
-  });
+  app.use('/', upload.array('files'));
 
-  const postServer = new ApolloServer({
-    typeDefs: postTypeDefs,
-    resolvers: postResolver,
-  });
+  app.use(
+    '/',
+    expressMiddleware(server, {
+      context: async ({ req }) => {
+        const token = req.headers.authorization?.split(' ')[1];
+        const files = req.files;
+        const query = req.query;
+        let user = null;
 
-  const categoryServer = new ApolloServer({
-    typeDefs: categoryTypeDefs,
-    resolvers: categoryResolver,
-  });
+        if (token) {
+          try {
+            user = jwt.verify(token, process.env.ACCESS_TOKEN || '');
+          } catch (error) {
+            console.error('JWT verification error:', error);
+            throw new GraphQLError('Invalid or expired token', {
+              extensions: { code: 'AUTHORIZATION_ERROR' },
+            });
+          }
+        }
 
-  const commentServer = new ApolloServer({
-    typeDefs: commentTypeDefs,
-    resolvers: commentResolver,
-  });
+        return { user, files, query };
+      },
+    })
+  );
 
-  await userServer.start();
-  await authServer.start();
-  await postServer.start();
-  await categoryServer.start();
-  await commentServer.start();
-  await tokenServer.start();
-
-  app.use('/users/', expressMiddleware(userServer));
-  app.use('/tokens/', expressMiddleware(tokenServer));
-  app.use('/auth/', expressMiddleware(authServer));
-  app.use('/posts/', expressMiddleware(postServer));
-  app.use('/categories/', expressMiddleware(categoryServer));
-  app.use('/comments/', expressMiddleware(commentServer));
-
-  app.use('/uploads', uploadRoutes);
+  app.use('/rest/uploads', uploadRoutes);
 
   const PORT = process.env.PORT || 4000;
 
