@@ -2,17 +2,18 @@ import Comments from '../models/comment';
 import Posts from '../models/post';
 import Uploads from '../models/upload';
 import Users, { User } from '../models/user';
+import { checkUserRole } from '../utils/role';
 
 const userResolver = {
   Query: {
-    users: async () => {
+    users: checkUserRole(['admin', 'developer'])(async () => {
       const users = await Users.find();
 
       if (users.length === 0) {
         throw new Error('No users found');
       }
       return users;
-    },
+    }),
     user: async (_: any, args: { id: User['_id'] }) => {
       const user = await Users.findById(args.id);
 
@@ -25,6 +26,10 @@ const userResolver = {
   },
 
   User: {
+    image: async (parent: User) => {
+      const image = await Uploads.findById(parent.image);
+      return image;
+    },
     posts: async (parent: User) => {
       const posts = await Posts.find({ author: parent._id });
       return posts;
