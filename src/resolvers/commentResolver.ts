@@ -1,10 +1,11 @@
 import Comments, { Comment } from '../models/comment';
 import Posts from '../models/post';
 import Users from '../models/user';
+import { checkUserRole } from '../utils/role';
 
 const commentResolver = {
   Query: {
-    comments: async () => {
+    comments: checkUserRole(['admin', 'developer'])(async () => {
       const comments = await Comments.find();
 
       if (comments.length === 0) {
@@ -12,7 +13,7 @@ const commentResolver = {
       }
 
       return comments;
-    },
+    }),
     comment: async (_: unknown, args: { id: Comment['_id'] }) => {
       const comment = await Comments.findById(args.id);
 
