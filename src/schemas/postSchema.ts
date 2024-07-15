@@ -2,7 +2,7 @@ const postTypeDefs = `#graphql
     type Post {
         _id: ID!
         title: String!
-        image: String!
+        image: Upload!
         excerpt: String!
         content: String!
         author: User
@@ -18,7 +18,7 @@ const postTypeDefs = `#graphql
 
     input CreatePostPayload {
         title: String!
-        image: String!
+        image: ID!
         excerpt: String!
         content: String!
         category: ID!
@@ -27,7 +27,7 @@ const postTypeDefs = `#graphql
 
     input UpdatePostPayload {
         title: String
-        image: String
+        image: ID
         excerpt: String
         content: String
         category: ID
