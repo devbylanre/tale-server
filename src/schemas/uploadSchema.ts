@@ -5,7 +5,6 @@ const uploadTypeDefs = `#graphql
         path: String!
         size: Int!
         uri: String!
-        user: User
         createdAt: Float!
     }
 
