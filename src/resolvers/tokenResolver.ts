@@ -1,10 +1,11 @@
 import Tokens, { Token } from '../models/token';
 import crypto from 'crypto';
 import Users from '../models/user';
+import { checkUserRole } from '../utils/role';
 
 const tokenResolver = {
   Query: {
-    tokens: async () => {
+    tokens: checkUserRole(['admin', 'developer'])(async () => {
       const tokens = await Tokens.find();
 
       if (tokens.length === 0) {
@@ -12,17 +13,19 @@ const tokenResolver = {
       }
 
       return tokens;
-    },
+    }),
 
-    token: async (_: unknown, args: { id: Token }) => {
-      const token = await Tokens.findById(args.id);
+    token: checkUserRole(['admin', 'developer'])(
+      async (_: unknown, args: { id: Token }) => {
+        const token = await Tokens.findById(args.id);
 
-      if (token === null) {
-        throw new Error('Token not found');
+        if (token === null) {
+          throw new Error('Token not found');
+        }
+
+        return token;
       }
-
-      return token;
-    },
+    ),
   },
 
   Token: {
