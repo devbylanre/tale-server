@@ -1,5 +1,9 @@
+import Categories from '../models/category';
 import Comments from '../models/comment';
 import Posts, { Post } from '../models/post';
+import Uploads from '../models/upload';
+import Users from '../models/user';
+import { checkUserRole } from '../utils/role';
 
 const postResolver = {
   Query: {
@@ -24,13 +28,17 @@ const postResolver = {
   },
 
   Post: {
+    image: async (parent: Post) => {
+      const image = await Uploads.findById(parent.image).populate('user');
+      return image;
+    },
     author: async (parent: Post) => {
-      const post = await Posts.findById(parent._id).populate('author');
-      return post?.author;
+      const author = await Users.findById(parent.author).populate('image');
+      return author;
     },
     category: async (parent: Post) => {
-      const post = await Posts.findById(parent._id).populate('category');
-      return post?.category;
+      const category = await Categories.findById(parent.category);
+      return category;
     },
     comments: async (parent: Post) => {
       const comments = await Comments.find({ post: parent._id })
@@ -41,49 +49,55 @@ const postResolver = {
   },
 
   Mutation: {
-    createPost: async (
-      _: unknown,
-      args: { payload: Omit<Post, '_id' | 'createdAt'> }
-    ) => {
-      let post = await Posts.findOne({ title: args.payload.title });
+    createPost: checkUserRole(['admin', 'developer', 'author'])(
+      async (
+        _: unknown,
+        args: { payload: Omit<Post, '_id' | 'createdAt'> }
+      ) => {
+        let post = await Posts.findOne({ title: args.payload.title });
 
-      if (post !== null) {
-        throw new Error('Article or post with that title already exists');
-      } else {
-        post = new Posts(args.payload);
-        await post.save();
+        if (post !== null) {
+          throw new Error('Article or post with that title already exists');
+        } else {
+          post = new Posts(args.payload);
+          await post.save();
+        }
+
+        return post;
       }
+    ),
 
-      return post;
-    },
+    updatePost: checkUserRole(['admin', 'developer', 'author'])(
+      async (
+        _: unknown,
+        args: {
+          id: Post['_id'];
+          payload: Omit<Partial<Post>, '_id' | 'createdAt' | 'author'>;
+        }
+      ) => {
+        let post = await Posts.findByIdAndUpdate(args.id, args.payload, {
+          new: true,
+        });
 
-    updatePost: async (
-      _: unknown,
-      args: {
-        id: Post['_id'];
-        payload: Omit<Partial<Post>, '_id' | 'createdAt' | 'author'>;
+        if (post === null) {
+          throw new Error('Post not found');
+        }
+
+        return post;
       }
-    ) => {
-      let post = await Posts.findByIdAndUpdate(args.id, args.payload, {
-        new: true,
-      });
+    ),
 
-      if (post === null) {
-        throw new Error('Post not found');
+    deletePost: checkUserRole(['admin', 'developer', 'author'])(
+      async (_: unknown, args: { id: Post['_id'] }) => {
+        const post = await Posts.findByIdAndDelete(args.id, { new: true });
+
+        if (post === null) {
+          throw new Error('Post not found');
+        }
+
+        return post;
       }
-
-      return post;
-    },
-
-    deletePost: async (_: unknown, args: { id: Post['_id'] }) => {
-      const post = await Posts.findByIdAndDelete(args.id, { new: true });
-
-      if (post === null) {
-        throw new Error('Post not found');
-      }
-
-      return post;
-    },
+    ),
   },
 };
 
