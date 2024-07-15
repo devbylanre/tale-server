@@ -6,6 +6,7 @@ export type User = {
   password: string;
   lastName: string;
   firstName: string;
+  image: Types.ObjectId;
   role: 'author' | 'reader' | 'admin' | 'developer';
   status: 'deactivated' | 'activated' | 'pending';
 };
@@ -15,6 +16,7 @@ const schema = new Schema<User>({
   password: { type: String, required: true },
   lastName: { type: String, required: true, lowercase: true },
   firstName: { type: String, required: true, lowercase: true },
+  image: { type: Schema.Types.ObjectId, required: true, ref: 'Uploads' },
   role: { type: String, required: true, lowercase: true, default: 'reader' },
   status: { type: String, required: true, lowercase: true, default: 'pending' },
 });
