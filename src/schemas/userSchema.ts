@@ -7,9 +7,10 @@ const userTypeDefs = `#graphql
         password: String!
         firstName: String!
         lastName: String!
+        image: Upload
         posts: [Post]
-        comments: [Comment]
         uploads: [Upload]
+        comments: [Comment]
     }
     type Query {
         users: [User!]
@@ -19,7 +20,9 @@ const userTypeDefs = `#graphql
     input UpdateUserPayload{
         firstName: String
         lastName: String
+        image: ID
     }
+
     type Mutation {
         updateUser(id: ID!, payload: UpdateUserPayload): User
         deleteUser(id: ID!): User
