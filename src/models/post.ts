@@ -4,7 +4,7 @@ export type Post = {
   _id: Types.ObjectId;
   title: string;
   content: any;
-  image: string;
+  image: Types.ObjectId;
   excerpt: string;
   author: Types.ObjectId;
   category: Types.ObjectId;
@@ -13,7 +13,7 @@ export type Post = {
 
 const schema = new Schema<Post>({
   title: { type: String, required: true, unique: true },
-  image: { type: String, required: true },
+  image: { type: Schema.Types.ObjectId, required: true, ref: 'Uploads' },
   excerpt: { type: String, required: true },
   content: { type: Schema.Types.Mixed, required: true },
   author: { type: Schema.Types.ObjectId, required: true, ref: 'Users' },
