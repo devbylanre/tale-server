@@ -1,6 +1,9 @@
 import Users, { User } from '../models/user';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import cookie from 'cookie-parser';
+import { checkUserRole } from '../utils/role';
+import tokenize from '../utils/token';
+import { Response } from 'express';
 
 const authResolver = {
   Mutation: {
@@ -35,7 +38,8 @@ const authResolver = {
 
     signIn: async (
       _: unknown,
-      args: { payload: Pick<User, 'email' | 'password'> }
+      args: { payload: Pick<User, 'email' | 'password'> },
+      context: { res: Response }
     ) => {
       const user = await Users.findOne({ email: args.payload.email });
 
@@ -49,22 +53,43 @@ const authResolver = {
       );
 
       if (!isPasswordValid) {
-        throw new Error('Invalid password provided');
+        throw new Error('Password is incorrect');
       }
 
-      const accessToken = jwt.sign(
-        { userId: user.toObject()._id },
-        process.env.ACCESS_TOKEN as string,
-        { expiresIn: 30 }
-      );
-      const refreshToken = jwt.sign(
-        { userId: user.toObject()._id },
-        process.env.REFRESH_TOKEN as string,
-        { expiresIn: '3d' }
-      );
+      const accessToken = tokenize.sign('access', {
+        id: user._id,
+        role: user.role,
+      });
+      const refreshToken = tokenize.sign('refresh', {
+        id: user._id,
+        role: user.role,
+      });
+
+      const MAX_AGE = 2.592 * 10 ** 9;
+      context.res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        maxAge: MAX_AGE,
+      });
 
       return { accessToken, refreshToken };
     },
+    refreshToken: checkUserRole(['admin', 'author', 'developer', 'reader'])(
+      async (_: unknown, args: { token: string }) => {
+        const refreshToken = args.token;
+        const user = tokenize.verify(
+          refreshToken,
+          process.env.REFRESH_TOKEN as string
+        );
+
+        if (!user) {
+          throw new Error('Invalid refresh token');
+        }
+
+        const accessToken = tokenize.sign('access', user);
+
+        return { accessToken, refreshToken };
+      }
+    ),
     changePassword: async (
       _: unknown,
       args: {
