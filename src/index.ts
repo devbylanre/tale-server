@@ -2,7 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { expressMiddleware } from '@apollo/server/express4';
 import { GraphQLError } from 'graphql';
 
@@ -25,6 +25,8 @@ import uploadRoutes from './routes/uploadRoutes';
 import uploadTypeDefs from './schemas/uploadSchema';
 import uploadResolver from './resolvers/uploadResolver';
 import { upload } from './middleware/multerMiddleware';
+import tokenize from './utils/token';
+import cookie from 'cookie-parser';
 
 const startServer = async () => {
   const typeDefs = [
@@ -62,28 +64,16 @@ const startServer = async () => {
   await server.start();
 
   app.use('/', upload.array('files'));
+  app.use(cookie());
 
   app.use(
     '/',
     expressMiddleware(server, {
-      context: async ({ req }) => {
+      context: async ({ req, res }) => {
         const token = req.headers.authorization?.split(' ')[1];
-        const files = req.files;
-        const query = req.query;
-        let user = null;
+        const user = tokenize.verify(token, process.env.ACCESS_TOKEN as string);
 
-        if (token) {
-          try {
-            user = jwt.verify(token, process.env.ACCESS_TOKEN || '');
-          } catch (error) {
-            console.error('JWT verification error:', error);
-            throw new GraphQLError('Invalid or expired token', {
-              extensions: { code: 'AUTHORIZATION_ERROR' },
-            });
-          }
-        }
-
-        return { user, files, query };
+        return { user, req, res };
       },
     })
   );
