@@ -7,17 +7,18 @@ import {
 } from 'firebase/storage';
 import Uploads, { Upload } from '../models/upload';
 import firebaseApp from '../config/firebase';
-import Users, { User } from '../models/user';
+import { User } from '../models/user';
 import { Request } from 'express';
 import crypto from 'crypto';
 import path from 'path';
 import { Ext, isSupported } from '../utils/file';
+import { checkUserRole } from '../utils/role';
 
 const storage = getStorage(firebaseApp, process.env.FIREBASE_STORAGE_BUCKET);
 
 const uploadResolver = {
   Query: {
-    uploads: async () => {
+    uploads: checkUserRole(['admin', 'developer'])(async () => {
       const uploads = await Uploads.find();
 
       if (uploads.length === 0) {
@@ -25,7 +26,7 @@ const uploadResolver = {
       }
 
       return uploads;
-    },
+    }),
     upload: async (_: unknown, args: { id: Upload['_id'] }) => {
       const upload = await Uploads.findById(args.id);
       if (upload === null) {
@@ -35,19 +36,8 @@ const uploadResolver = {
     },
   },
 
-  Upload: {
-    user: async (parent: Upload) => {
-      const user = await Users.findById(parent.user);
-      return user;
-    },
-  },
-
   Mutation: {
-    createUpload: async (
-      _: unknown,
-      args: { id: User['_id'] },
-      context: any
-    ) => {
+    createUpload: async (args: { id: User['_id'] }, context: any) => {
       const files: Express.Multer.File | undefined = context.files;
       const query: Request['query'] = context.query;
       const exts = query.exts as Ext[];
