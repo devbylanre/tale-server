@@ -3,13 +3,13 @@ import { model, Schema, Types } from 'mongoose';
 export type Category = {
   _id: Types.ObjectId;
   title: string;
-  image: string;
+  image: Types.ObjectId;
   description: string;
 };
 
 const schema = new Schema<Category>({
   title: { type: String, required: true, unique: true },
-  image: { type: String, required: true },
+  image: { type: Schema.Types.ObjectId, required: true, ref: 'Uploads' },
   description: { type: String, required: true },
 });
 
