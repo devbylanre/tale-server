@@ -21,6 +21,8 @@ const userTypeDefs = `#graphql
         firstName: String
         lastName: String
         image: ID
+        role: String
+        status: String
     }
 
     type Mutation {
