@@ -1,7 +1,7 @@
+import authorize from '../middleware/authorize';
 import Categories, { Category } from '../models/category';
 import Posts from '../models/post';
 import Uploads from '../models/upload';
-import { checkUserRole } from '../utils/role';
 
 const categoryResolver = {
   Query: {
@@ -39,7 +39,7 @@ const categoryResolver = {
   },
 
   Mutation: {
-    createCategory: checkUserRole(['admin', 'author', 'developer'])(
+    createCategory: authorize.roles(['admin', 'author', 'developer'])(
       async (_: unknown, args: { payload: Omit<Category, '_id'> }) => {
         const existingCategory = await Categories.findOne({
           title: args.payload.title,
@@ -56,7 +56,7 @@ const categoryResolver = {
       }
     ),
 
-    updateCategory: checkUserRole(['admin', 'author', 'developer'])(
+    updateCategory: authorize.roles(['admin', 'developer', 'author'])(
       async (
         _: unknown,
         args: { id: string; payload: Omit<Partial<Category>, '_id'> }
@@ -75,7 +75,7 @@ const categoryResolver = {
       }
     ),
 
-    deleteCategory: checkUserRole(['admin', 'author', 'developer'])(
+    deleteCategory: authorize.roles(['admin', 'author', 'developer'])(
       async (_: unknown, args: { id: Category['_id'] }) => {
         const category = await Categories.findByIdAndDelete(args.id, {
           new: true,
