@@ -51,7 +51,7 @@ const multiple = async ({ files, query, params }: Request, res: Response) => {
 
     return res.status(200).json({ uploads: records });
   } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ message: (error as Error).message });
   }
 };
 
