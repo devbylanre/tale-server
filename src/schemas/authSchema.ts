@@ -1,9 +1,6 @@
 import { GraphQLInt } from 'graphql';
 
 const authTypeDefs = `#graphql 
-    type Query {
-        ping: Boolean!
-    }
 
     input SignUpPayload {
         email: String!
@@ -20,22 +17,28 @@ const authTypeDefs = `#graphql
     input SignInPayload {
         email: String!
         password: String!
+        persist: Boolean!
     }
 
     input ChangePasswordPayload {
+        email: String!
         password: String!
     }
 
     input ChangeEmailPayload {
         email: String!
+        newEmail: String!
+    }
+
+    type Query {
+        refreshToken: SignIn
     }
 
     type Mutation {
         signUp(payload: SignUpPayload!): User
         signIn(payload: SignInPayload!): SignIn
-        refreshToken(token: String!): SignIn
-        changeEmail(email: String!, payload: ChangeEmailPayload!): User
-        changePassword(email:String!, payload: ChangePasswordPayload!): User
+        changeEmail(payload: ChangeEmailPayload!): User
+        changePassword(payload: ChangePasswordPayload!): User
     }
 `;
 
