@@ -1,12 +1,12 @@
+import authorize from '../middleware/authorize';
 import Comments from '../models/comment';
 import Posts from '../models/post';
 import Uploads from '../models/upload';
 import Users, { User } from '../models/user';
-import { checkUserRole } from '../utils/role';
 
 const userResolver = {
   Query: {
-    users: checkUserRole(['admin', 'developer'])(async () => {
+    users: authorize.roles(['admin', 'developer'])(async () => {
       const users = await Users.find();
 
       if (users.length === 0) {
@@ -45,31 +45,33 @@ const userResolver = {
   },
 
   Mutation: {
-    updateUser: async (
-      _: any,
-      args: {
-        id: User['_id'];
-        payload: Pick<Partial<User>, 'firstName' | 'lastName'>;
-      }
-    ) => {
-      const user = await Users.findByIdAndUpdate(args.id, args.payload, {
-        new: true,
-      });
+    updateUser: authorize.roles()(
+      async (
+        _: any,
+        args: {
+          id: User['_id'];
+          payload: Omit<Partial<User>, 'email' | 'password' | '_id'>;
+        }
+      ) => {
+        const user = await Users.findByIdAndUpdate(args.id, args.payload, {
+          new: true,
+        });
 
-      if (user === null) {
-        throw new Error('Could not find user');
-      }
+        if (user === null) {
+          throw new Error('Could not find user');
+        }
 
-      return user;
-    },
-    deleteUser: async (_: any, args: { id: User['_id'] }) => {
+        return user;
+      }
+    ),
+    deleteUser: authorize.roles()(async (_: any, args: { id: User['_id'] }) => {
       const user = await Users.findByIdAndDelete(args.id, { new: true });
 
       if (user === null) {
         throw new Error('Could not find user');
       }
       return user;
-    },
+    }),
   },
 };
 
