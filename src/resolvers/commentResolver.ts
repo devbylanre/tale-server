@@ -1,3 +1,4 @@
+import authorize from '../middleware/authorize';
 import Comments, { Comment } from '../models/comment';
 import Posts from '../models/post';
 import Users from '../models/user';
@@ -5,7 +6,7 @@ import { checkUserRole } from '../utils/role';
 
 const commentResolver = {
   Query: {
-    comments: checkUserRole(['admin', 'developer'])(async () => {
+    comments: authorize.roles(['admin', 'author', 'developer'])(async () => {
       const comments = await Comments.find();
 
       if (comments.length === 0) {
@@ -39,41 +40,51 @@ const commentResolver = {
   },
 
   Mutation: {
-    createComment: async (
-      _: unknown,
-      args: { payload: Omit<Comment, '_id' | 'createdAt'> }
-    ) => {
-      const comment = new Comments(args.payload);
-      await comment.save();
+    createComment: authorize.roles()(
+      async (
+        _: unknown,
+        args: { payload: Omit<Comment, '_id' | 'createdAt'> }
+      ) => {
+        const comment = new Comments(args.payload);
+        await comment.save();
 
-      return comment;
-    },
-    updateComment: async (
-      _: unknown,
-      args: {
-        id: Comment['_id'];
-        payload: Pick<Partial<Comment>, 'content'>;
+        return comment;
       }
-    ) => {
-      const comment = await Comments.findByIdAndUpdate(args.id, args.payload, {
-        new: true,
-      });
+    ),
+    updateComment: authorize.roles()(
+      async (
+        _: unknown,
+        args: {
+          id: Comment['_id'];
+          payload: Pick<Partial<Comment>, 'content'>;
+        }
+      ) => {
+        const comment = await Comments.findByIdAndUpdate(
+          args.id,
+          args.payload,
+          { new: true }
+        );
 
-      if (comment === null) {
-        throw new Error('Comment not found.');
+        if (comment === null) {
+          throw new Error('Comment not found.');
+        }
+
+        return comment;
       }
+    ),
+    deleteComment: authorize.roles()(
+      async (_: unknown, args: { id: Comment['_id'] }) => {
+        const comment = await Comments.findByIdAndDelete(args.id, {
+          new: true,
+        });
 
-      return comment;
-    },
-    deleteComment: async (_: unknown, args: { id: Comment['_id'] }) => {
-      const comment = await Comments.findByIdAndDelete(args.id, { new: true });
+        if (comment === null) {
+          throw new Error('Comment not found.');
+        }
 
-      if (comment === null) {
-        throw new Error('Comment not found.');
+        return comment;
       }
-
-      return comment;
-    },
+    ),
   },
 };
 
