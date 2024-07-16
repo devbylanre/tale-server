@@ -5,6 +5,8 @@ const uploadTypeDefs = `#graphql
         path: String!
         size: Int!
         uri: String!
+        user: User
+        alt: String
         createdAt: Float!
     }
 
@@ -14,7 +16,6 @@ const uploadTypeDefs = `#graphql
     }
 
     type Mutation {
-        createUpload(id: ID!): Upload
         deleteUpload(id: ID!): Upload
     } 
 `;
