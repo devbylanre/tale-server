@@ -1,7 +1,7 @@
 const tokenTypeDefs = `#graphql
     type Token {
         _id: ID!
-        user: User
+        user: User!
         code: Int!
         expiresAt: Float!
     }
