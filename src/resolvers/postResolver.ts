@@ -1,9 +1,9 @@
+import authorize from '../middleware/authorize';
 import Categories from '../models/category';
 import Comments from '../models/comment';
 import Posts, { Post } from '../models/post';
 import Uploads from '../models/upload';
 import Users from '../models/user';
-import { checkUserRole } from '../utils/role';
 
 const postResolver = {
   Query: {
@@ -49,7 +49,7 @@ const postResolver = {
   },
 
   Mutation: {
-    createPost: checkUserRole(['admin', 'developer', 'author'])(
+    createPost: authorize.roles()(
       async (
         _: unknown,
         args: { payload: Omit<Post, '_id' | 'createdAt'> }
@@ -67,7 +67,7 @@ const postResolver = {
       }
     ),
 
-    updatePost: checkUserRole(['admin', 'developer', 'author'])(
+    updatePost: authorize.roles(['author', 'admin', 'developer'])(
       async (
         _: unknown,
         args: {
@@ -87,7 +87,7 @@ const postResolver = {
       }
     ),
 
-    deletePost: checkUserRole(['admin', 'developer', 'author'])(
+    deletePost: authorize.roles(['admin', 'developer', 'author'])(
       async (_: unknown, args: { id: Post['_id'] }) => {
         const post = await Posts.findByIdAndDelete(args.id, { new: true });
 
