@@ -30,9 +30,9 @@ import cookie from 'cookie-parser';
 
 const startServer = async () => {
   const typeDefs = [
+    authTypeDefs,
     userTypeDefs,
     tokenTypeDefs,
-    authTypeDefs,
     categoryTypeDefs,
     commentTypeDefs,
     postTypeDefs,
@@ -40,21 +40,22 @@ const startServer = async () => {
   ];
 
   const resolvers = [
+    authResolver,
     userResolver,
     tokenResolver,
-    authResolver,
     postResolver,
     categoryResolver,
     commentResolver,
     uploadResolver,
   ];
 
-  await mongooseConfig();
-
   const app = express();
 
   app.use(express.json());
+  app.use(cookie());
   app.use(cors({ origin: 'http://localhost:3000' }));
+
+  await mongooseConfig();
 
   const server = new ApolloServer({
     typeDefs,
@@ -63,13 +64,11 @@ const startServer = async () => {
 
   await server.start();
 
-  app.use('/', upload.array('files'));
-  app.use(cookie());
-
   app.use(
-    '/',
+    '/graphql/',
     expressMiddleware(server, {
       context: async ({ req, res }) => {
+        console.log({ cookies: req.cookies });
         const token = req.headers.authorization?.split(' ')[1];
         const user = tokenize.verify(token, process.env.ACCESS_TOKEN as string);
 
