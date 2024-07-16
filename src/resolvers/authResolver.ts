@@ -1,11 +1,36 @@
 import Users, { User } from '../models/user';
 import bcrypt from 'bcrypt';
-import cookie from 'cookie-parser';
-import { checkUserRole } from '../utils/role';
 import tokenize from '../utils/token';
 import { Response } from 'express';
+import authorize from '../middleware/authorize';
+import str from '../utils/str';
 
 const authResolver = {
+  Query: {
+    refreshToken: authorize.roles()(
+      async (_: unknown, __: unknown, context: any) => {
+        const refreshToken = context.req.cookies['refreshToken'];
+
+        if (!refreshToken) {
+          throw new Error('Your session has expired. Try logging in again');
+        }
+
+        const user = tokenize.verify(
+          refreshToken,
+          process.env.REFRESH_TOKEN as string
+        );
+
+        if (!user) {
+          throw new Error('Invalid refresh token');
+        }
+
+        const accessToken = tokenize.sign('access', user);
+
+        return { accessToken, refreshToken };
+      }
+    ),
+  },
+
   Mutation: {
     signUp: async (
       _: any,
@@ -38,7 +63,9 @@ const authResolver = {
 
     signIn: async (
       _: unknown,
-      args: { payload: Pick<User, 'email' | 'password'> },
+      args: {
+        payload: Pick<User, 'email' | 'password'> & { persist: boolean };
+      },
       context: { res: Response }
     ) => {
       const user = await Users.findOne({ email: args.payload.email });
@@ -49,7 +76,7 @@ const authResolver = {
 
       const isPasswordValid = await bcrypt.compare(
         args.payload.password,
-        user.toObject().password
+        user.password
       );
 
       if (!isPasswordValid) {
@@ -68,78 +95,66 @@ const authResolver = {
       const MAX_AGE = 2.592 * 10 ** 9;
       context.res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        maxAge: MAX_AGE,
+        maxAge: args.payload.persist ? MAX_AGE : undefined,
       });
 
       return { accessToken, refreshToken };
     },
-    refreshToken: checkUserRole(['admin', 'author', 'developer', 'reader'])(
-      async (_: unknown, args: { token: string }) => {
-        const refreshToken = args.token;
-        const user = tokenize.verify(
-          refreshToken,
-          process.env.REFRESH_TOKEN as string
-        );
 
-        if (!user) {
-          throw new Error('Invalid refresh token');
-        }
-
-        const accessToken = tokenize.sign('access', user);
-
-        return { accessToken, refreshToken };
-      }
-    ),
     changePassword: async (
       _: unknown,
       args: {
-        email: User['email'];
         payload: {
+          email: User['email'];
           password: User['password'];
         };
       }
     ) => {
-      let user = await Users.findOne({ email: args.email });
+      const existingUser = await Users.findOne({ email: args.payload.email });
 
-      if (user === null) {
+      if (existingUser === null) {
         throw new Error('Could not find user');
       }
 
-      const saltRound = 10;
-      const hashedPassword = await bcrypt.hash(
+      const isPreviousPassword = await bcrypt.compare(
         args.payload.password,
-        saltRound
+        existingUser.password
       );
 
-      user = await Users.findByIdAndUpdate(user._id, {
-        password: hashedPassword,
-      });
-
-      if (user === null) {
-        throw new Error('Error updating user password');
+      if (isPreviousPassword) {
+        throw new Error('Password is already in use');
       }
 
-      return user;
-    },
-    changeEmail: async (
-      _: unknown,
-      args: { email: User['email']; payload: { email: User['email'] } }
-    ) => {
-      let user = await Users.findOne({ email: args.email });
+      const hashedPassword = await bcrypt.hash(args.payload.password, 10);
 
-      if (user === null) {
-        throw new Error('Could not find user');
-      }
-
-      user = await Users.findByIdAndUpdate(
-        user._id,
+      const user = await Users.findOneAndUpdate(
         { email: args.payload.email },
+        { password: hashedPassword },
         { new: true }
       );
 
-      if (user === null) {
-        throw new Error('Error updating user email');
+      return user;
+    },
+
+    changeEmail: async (
+      _: unknown,
+      args: { payload: { email: User['email']; newEmail: User['email'] } }
+    ) => {
+      const existingUser = await Users.findOne({ email: args.payload.email });
+
+      if (existingUser === null) {
+        throw new Error('Could not find user');
       }
+
+      if (str.compare(existingUser.email, args.payload.newEmail)) {
+        throw new Error('Email is already in use');
+      }
+
+      const user = await Users.findOneAndUpdate(
+        { email: args.payload.email },
+        { email: args.payload.newEmail },
+        { new: true }
+      );
 
       return user;
     },
