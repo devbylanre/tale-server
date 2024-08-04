@@ -1,7 +1,7 @@
-import authorize from '../middleware/authorize';
+import authorize from '../middlewares/authorizeMiddleware';
 import Comments from '../models/comment';
 import Posts from '../models/post';
-import Uploads from '../models/upload';
+import Medias from '../models/media';
 import Users, { User } from '../models/user';
 
 const userResolver = {
@@ -14,21 +14,22 @@ const userResolver = {
       }
       return users;
     }),
-    user: async (_: any, args: { id: User['_id'] }) => {
-      const user = await Users.findById(args.id);
+    user: authorize.roles()(async (_: any, __: any, context: any) => {
+      const ID = context.user.id;
+      const user = await Users.findById(ID);
 
       if (user === null) {
         throw new Error('Could not find user');
       }
 
       return user;
-    },
+    }),
   },
 
   User: {
     image: async (parent: User) => {
-      const image = await Uploads.findById(parent.image);
-      return image;
+      const media = await Medias.findById(parent.image);
+      return media;
     },
     posts: async (parent: User) => {
       const posts = await Posts.find({ author: parent._id });
@@ -38,9 +39,9 @@ const userResolver = {
       const comments = await Comments.find({ author: parent._id });
       return comments;
     },
-    uploads: async (parent: User) => {
-      const uploads = await Uploads.find({ user: parent._id }).populate('user');
-      return uploads;
+    medias: async (parent: User) => {
+      const medias = await Medias.find({ user: parent._id }).populate('user');
+      return medias;
     },
   },
 
