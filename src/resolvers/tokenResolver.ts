@@ -1,4 +1,4 @@
-import authorize from '../middleware/authorize';
+import authorize from '../middlewares/authorizeMiddleware';
 import Tokens, { Token } from '../models/token';
 import Users from '../models/user';
 import date from '../utils/date';
