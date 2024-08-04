@@ -14,9 +14,9 @@ export type User = {
 const schema = new Schema<User>({
   email: { type: String, required: true },
   password: { type: String, required: true },
-  lastName: { type: String, required: true, lowercase: true },
-  firstName: { type: String, required: true, lowercase: true },
-  image: { type: Schema.Types.ObjectId, required: true, ref: 'Uploads' },
+  lastName: { type: String, lowercase: true },
+  firstName: { type: String, lowercase: true },
+  image: { type: Schema.Types.ObjectId, ref: 'Medias' },
   role: { type: String, required: true, lowercase: true, default: 'reader' },
   status: { type: String, required: true, lowercase: true, default: 'pending' },
 });
