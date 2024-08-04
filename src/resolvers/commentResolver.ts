@@ -1,4 +1,4 @@
-import authorize from '../middleware/authorize';
+import authorize from '../middlewares/authorizeMiddleware';
 import Comments, { Comment } from '../models/comment';
 import Posts from '../models/post';
 import Users from '../models/user';
