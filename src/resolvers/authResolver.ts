@@ -2,7 +2,7 @@ import Users, { User } from '../models/user';
 import bcrypt from 'bcrypt';
 import tokenize from '../utils/token';
 import { Response } from 'express';
-import authorize from '../middleware/authorize';
+import authorize from '../middlewares/authorizeMiddleware';
 import str from '../utils/str';
 
 const authResolver = {
@@ -64,7 +64,7 @@ const authResolver = {
     signIn: async (
       _: unknown,
       args: {
-        payload: Pick<User, 'email' | 'password'> & { persist: boolean };
+        payload: Pick<User, 'email' | 'password'> & { persist?: boolean };
       },
       context: { res: Response }
     ) => {
