@@ -1,8 +1,8 @@
-import authorize from '../middleware/authorize';
+import authorize from '../middlewares/authorizeMiddleware';
 import Categories from '../models/category';
 import Comments from '../models/comment';
 import Posts, { Post } from '../models/post';
-import Uploads from '../models/upload';
+import Medias from '../models/media';
 import Users from '../models/user';
 
 const postResolver = {
@@ -29,7 +29,7 @@ const postResolver = {
 
   Post: {
     image: async (parent: Post) => {
-      const image = await Uploads.findById(parent.image).populate('user');
+      const image = await Medias.findById(parent.image).populate('user');
       return image;
     },
     author: async (parent: Post) => {
