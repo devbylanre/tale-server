@@ -2,7 +2,7 @@ const postTypeDefs = `#graphql
     type Post {
         _id: ID!
         title: String!
-        image: Upload!
+        image: Media!
         excerpt: String!
         content: String!
         author: User
