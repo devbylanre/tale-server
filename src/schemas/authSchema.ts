@@ -5,8 +5,8 @@ const authTypeDefs = `#graphql
     input SignUpPayload {
         email: String!
         password: String!
-        firstName: String!
-        lastName: String!
+        firstName: String
+        lastName: String
     }
 
     type SignIn {
@@ -17,7 +17,7 @@ const authTypeDefs = `#graphql
     input SignInPayload {
         email: String!
         password: String!
-        persist: Boolean!
+        persist: Boolean
     }
 
     input ChangePasswordPayload {
