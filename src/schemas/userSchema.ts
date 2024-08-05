@@ -7,14 +7,14 @@ const userTypeDefs = `#graphql
         password: String!
         firstName: String!
         lastName: String!
-        image: Upload
+        image: Media
         posts: [Post]
-        uploads: [Upload]
+        medias: [Media]
         comments: [Comment]
     }
     type Query {
         users: [User!]
-        user(id: ID!): User
+        user: User
     }
     
     input UpdateUserPayload{
