@@ -55,7 +55,7 @@ const mediaResolver = {
     updateMedia: authorize.roles(['admin', 'author', 'developer'])(
       async (
         _: unknown,
-        args: { id: Media['_id']; payload: Pick<Media, 'name'> }
+        args: { id: Media['_id']; payload: Pick<Media, 'name' | 'alt'> }
       ) => {
         const media = await Medias.findByIdAndUpdate(args.id, args.payload, {
           new: true,
