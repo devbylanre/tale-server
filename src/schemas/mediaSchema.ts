@@ -18,6 +18,7 @@ const mediaTypeDefs = `#graphql
 
     input UpdateMediaPayload {
         name: String
+        alt: String
     }
 
     type Mutation {
