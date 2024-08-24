@@ -7,22 +7,22 @@ const roleTypeDefs = `#graphql
 
     type Query {
         roles: [Role]
-        role: Role
+        role(id: ID!): Role
     }
 
     input CreateRolePayload {
         name: String!
-        capabilities: [Capability!]
+        capabilities: [ID!]
     }
 
     input EditRolePayload {
         name: String
-        capabilities: [Capability]
+        capabilities: [ID]
     }
 
     type Mutation {
-        createRole(payload: CreateRolePayload): Role!
-        editRole(id: ID!, payload: EditRolePayload): Role!
+        createRole(payload: CreateRolePayload!): Role!
+        editRole(id: ID!, payload: EditRolePayload!): Role!
         deleteRole(id: ID!): Role!
     }
 `;
