@@ -24,6 +24,12 @@ import mediaRoute from './routes/mediaRoute';
 import mediaTypeDefs from './schemas/mediaSchema';
 import mediaResolver from './resolvers/mediaResolver';
 
+import capabilityTypeDefs from './schemas/capabilitySchema';
+import roleTypeDefs from './schemas/roleSchema';
+
+import capabilityResolver from './resolvers/capabilityResolver';
+import roleResolver from './resolvers/roleResolver';
+
 const startServer = async () => {
   const typeDefs = [
     authTypeDefs,
@@ -33,6 +39,8 @@ const startServer = async () => {
     commentTypeDefs,
     postTypeDefs,
     mediaTypeDefs,
+    capabilityTypeDefs,
+    roleTypeDefs,
   ];
 
   const resolvers = [
@@ -43,6 +51,8 @@ const startServer = async () => {
     categoryResolver,
     commentResolver,
     mediaResolver,
+    capabilityResolver,
+    roleResolver,
   ];
 
   const app = express();
