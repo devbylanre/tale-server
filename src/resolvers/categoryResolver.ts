@@ -1,7 +1,6 @@
 import authorize from '../middlewares/authorizeMiddleware';
 import Categories, { Category } from '../models/category';
 import Posts from '../models/post';
-import Medias from '../models/media';
 
 const categoryResolver = {
   Query: {
@@ -26,10 +25,6 @@ const categoryResolver = {
   },
 
   Category: {
-    image: async (parent: Category) => {
-      const image = await Medias.findById(parent.image).populate('user');
-      return image;
-    },
     posts: async (parent: Category) => {
       const posts = await Posts.find({ category: parent._id })
         .populate('author')
