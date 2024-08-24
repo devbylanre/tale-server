@@ -4,7 +4,7 @@ const categoryTypeDefs = `#graphql
     type Category {
         _id: ID!
         title: String!
-        image: Media!
+        icons: String!
         description: String!
         posts: [Post]
     }
@@ -16,13 +16,13 @@ const categoryTypeDefs = `#graphql
 
     input CreateCategoryPayload {
         title: String!
-        image: ID!
+        icon: String!
         description: String!
     }
 
     input UpdateCategoryPayload {
         title: String
-        image: ID
+        icon: String
         description: String
     }
 
