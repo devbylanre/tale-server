@@ -1,6 +1,7 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 
-type Capability = {
+export type Capability = {
+  _id: Types.ObjectId;
   name: string;
   label: string;
   description: string;
