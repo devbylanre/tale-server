@@ -8,7 +8,7 @@ const capabilityTypeDefs = `#graphql
 
     type Query {
         capabilities: [Capability]
-        capability: Capability
+        capability(id: ID!): Capability
     }
 
     input CreateCapabilityPayload {
