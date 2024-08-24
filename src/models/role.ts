@@ -1,6 +1,7 @@
 import { model, Schema, Types } from 'mongoose';
 
 export type Role = {
+  _id: Types.ObjectId;
   name: 'admin' | 'author' | 'reader' | 'owner' | 'developer';
   capabilities: Types.ObjectId[];
 };
