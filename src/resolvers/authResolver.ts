@@ -2,33 +2,37 @@ import Users, { User } from '../models/user';
 import bcrypt from 'bcrypt';
 import tokenize from '../utils/token';
 import { Response } from 'express';
-import authorize from '../middlewares/authorizeMiddleware';
 import str from '../utils/str';
 
 const authResolver = {
   Query: {
-    refreshToken: authorize.roles()(
-      async (_: unknown, __: unknown, context: any) => {
-        const refreshToken = context.req.cookies['refreshToken'];
+    refreshToken: async (_: unknown, __: unknown, context: any) => {
+      const refreshToken = context.req.cookies['refreshToken'];
 
-        if (!refreshToken) {
-          throw new Error('Your session has expired. Try logging in again');
-        }
-
-        const user = tokenize.verify(
-          refreshToken,
-          process.env.REFRESH_TOKEN as string
-        );
-
-        if (!user) {
-          throw new Error('Invalid refresh token');
-        }
-
-        const accessToken = tokenize.sign('access', user);
-
-        return { accessToken, refreshToken };
+      if (!refreshToken) {
+        throw new Error('Authentication failed');
       }
-    ),
+
+      const user = tokenize.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN as string
+      );
+
+      if (!user) {
+        throw new Error('Authentication failed');
+      }
+
+      const accessToken = tokenize.sign('access', user);
+      const newRefreshToken = tokenize.sign('refresh', user);
+
+      const MAX_AGE = 30 * 24 * 60 * 60 * 1000;
+      context.res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        maxAge: MAX_AGE,
+      });
+
+      return { accessToken, refreshToken };
+    },
   },
 
   Mutation: {
@@ -64,7 +68,7 @@ const authResolver = {
     signIn: async (
       _: unknown,
       args: {
-        payload: Pick<User, 'email' | 'password'> & { persist?: boolean };
+        payload: Pick<User, 'email' | 'password'>;
       },
       context: { res: Response }
     ) => {
@@ -85,17 +89,15 @@ const authResolver = {
 
       const accessToken = tokenize.sign('access', {
         id: user._id,
-        role: user.role,
       });
       const refreshToken = tokenize.sign('refresh', {
         id: user._id,
-        role: user.role,
       });
 
-      const MAX_AGE = 2.592 * 10 ** 9;
+      const MAX_AGE = 30 * 24 * 60 * 60 * 1000;
       context.res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        maxAge: args.payload.persist ? MAX_AGE : undefined,
+        maxAge: MAX_AGE,
       });
 
       return { accessToken, refreshToken };
