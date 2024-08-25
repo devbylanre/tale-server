@@ -1,8 +1,9 @@
+import authorization from '../middlewares/authorization';
 import Capabilities, { Capability } from '../models/capability';
 
 const capabilityResolver = {
   Query: {
-    capabilities: async () => {
+    capabilities: authorization.permit('canReadCapabilities')(async () => {
       const capabilities = await Capabilities.find();
 
       if (!capabilities || capabilities.length === 0) {
@@ -10,47 +11,69 @@ const capabilityResolver = {
       }
 
       return capabilities;
-    },
-    capability: async (_: unknown, args: { id: Capability['_id'] }) => {
-      const capability = await Capabilities.findById(args.id);
+    }),
+    capability: authorization.permit('canReadCapabilities')(
+      async (_: unknown, args: { id: Capability['_id'] }) => {
+        const capability = await Capabilities.findById(args.id);
 
-      if (!capability) {
-        throw new Error('Cannot find capability');
+        if (!capability) {
+          throw new Error('Cannot find capability');
+        }
+
+        return capability;
       }
-
-      return capability;
-    },
+    ),
   },
 
   Mutation: {
-    createCapability: async (
-      _: unknown,
-      args: { payload: Omit<Capability, '_id'> }
-    ) => {
-      const capability = new Capabilities(args.payload);
-      await capability.save();
+    createCapability: authorization.permit('canCreateCapabilities')(
+      async (_: unknown, args: { payload: Omit<Capability, '_id'> }) => {
+        const savedCapability = await Capabilities.findOne({
+          name: args.payload.name,
+        });
 
-      return capability;
-    },
+        if (savedCapability) {
+          throw new Error('Capability already exists');
+        }
 
-    editCapability: async (
-      _: unknown,
-      args: { id: Capability['_id']; payload: Partial<Omit<Capability, '_id'>> }
-    ) => {
-      const newCapability = await Capabilities.findByIdAndUpdate(
-        args.id,
-        args.payload,
-        { new: true }
-      );
+        const capability = new Capabilities(args.payload);
+        await capability.save();
 
-      return newCapability;
-    },
+        return capability;
+      }
+    ),
 
-    deleteCapability: async (_: unknown, args: { id: Capability['_id'] }) => {
-      const capability = await Capabilities.findByIdAndDelete(args.id);
+    editCapability: authorization.permit('canEditCapabilities')(
+      async (
+        _: unknown,
+        args: {
+          id: Capability['_id'];
+          payload: Partial<Omit<Capability, '_id'>>;
+        }
+      ) => {
+        const newCapability = await Capabilities.findByIdAndUpdate(
+          args.id,
+          args.payload,
+          { new: true }
+        );
 
-      return capability;
-    },
+        return newCapability;
+      }
+    ),
+
+    deleteCapability: authorization.permit('canDeleteCapabilities')(
+      async (_: unknown, args: { id: Capability['_id'] }) => {
+        const capability = await Capabilities.findById(args.id);
+
+        if (!capability) {
+          throw new Error('Capability not found');
+        }
+
+        await Capabilities.findByIdAndUpdate(args.id);
+
+        return capability;
+      }
+    ),
   },
 };
 
