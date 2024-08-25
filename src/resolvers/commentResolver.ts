@@ -1,12 +1,11 @@
-import authorize from '../middlewares/authorizeMiddleware';
+import authorization from '../middlewares/authorization';
 import Comments, { Comment } from '../models/comment';
 import Posts from '../models/post';
 import Users from '../models/user';
-import { checkUserRole } from '../utils/role';
 
 const commentResolver = {
   Query: {
-    comments: authorize.roles(['admin', 'author', 'developer'])(async () => {
+    comments: authorization.permit('canReadComments')(async () => {
       const comments = await Comments.find();
 
       if (comments.length === 0) {
@@ -40,7 +39,7 @@ const commentResolver = {
   },
 
   Mutation: {
-    createComment: authorize.roles()(
+    createComment: authorization.permit('canCreateComments')(
       async (
         _: unknown,
         args: { payload: Omit<Comment, '_id' | 'createdAt'> }
@@ -51,7 +50,7 @@ const commentResolver = {
         return comment;
       }
     ),
-    updateComment: authorize.roles()(
+    updateComment: authorization.permit('canEditComments')(
       async (
         _: unknown,
         args: {
@@ -72,7 +71,7 @@ const commentResolver = {
         return comment;
       }
     ),
-    deleteComment: authorize.roles()(
+    deleteComment: authorization.permit('canDeleteComments')(
       async (_: unknown, args: { id: Comment['_id'] }) => {
         const comment = await Comments.findByIdAndDelete(args.id, {
           new: true,
