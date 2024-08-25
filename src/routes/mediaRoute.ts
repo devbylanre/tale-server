@@ -18,18 +18,18 @@ mediaRoute.post(
 
       const user = tokenize.verify(token, process.env.ACCESS_TOKEN as string);
 
-      const ROLES: readonly User['role'][] = [
-        'admin',
-        'author',
-        'developer',
-        'reader',
-      ];
+      // const ROLES: readonly User['role'][] = [
+      //   'admin',
+      //   'author',
+      //   'developer',
+      //   'reader',
+      // ];
 
-      req.user = user as Record<string, string>;
+      // req.user = user as Record<string, string>;
 
-      if (!ROLES.includes((user as User).role)) {
-        throw new Error('Unauthorized access');
-      }
+      // if (!ROLES.includes((user as User).role)) {
+      //   throw new Error('Unauthorized access');
+      // }
 
       next();
     } catch (error) {
