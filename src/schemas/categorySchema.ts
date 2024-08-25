@@ -4,7 +4,7 @@ const categoryTypeDefs = `#graphql
     type Category {
         _id: ID!
         title: String!
-        icons: String!
+        icon: String!
         description: String!
         posts: [Post]
     }
