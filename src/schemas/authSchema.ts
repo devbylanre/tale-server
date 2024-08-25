@@ -17,7 +17,6 @@ const authTypeDefs = `#graphql
     input SignInPayload {
         email: String!
         password: String!
-        persist: Boolean
     }
 
     input ChangePasswordPayload {
