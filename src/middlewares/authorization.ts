@@ -27,7 +27,7 @@ const authorization = {
         { extensions: { code: 'AUTHORIZATION_ERROR' } }
       );
     }
-    return user as Pick<User, '_id'>;
+    return user;
   },
 
   hasCapability: async (userId: string, requiredCapability: string) => {
