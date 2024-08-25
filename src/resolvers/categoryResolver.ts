@@ -1,4 +1,4 @@
-import authorize from '../middlewares/authorizeMiddleware';
+import authorization from '../middlewares/authorization';
 import Categories, { Category } from '../models/category';
 import Posts from '../models/post';
 
@@ -34,7 +34,7 @@ const categoryResolver = {
   },
 
   Mutation: {
-    createCategory: authorize.roles(['admin', 'author', 'developer'])(
+    createCategory: authorization.permit('canCreateCategories')(
       async (_: unknown, args: { payload: Omit<Category, '_id'> }) => {
         const existingCategory = await Categories.findOne({
           title: args.payload.title,
@@ -51,7 +51,7 @@ const categoryResolver = {
       }
     ),
 
-    updateCategory: authorize.roles(['admin', 'developer', 'author'])(
+    updateCategory: authorization.permit('canEditCategories')(
       async (
         _: unknown,
         args: { id: string; payload: Omit<Partial<Category>, '_id'> }
@@ -70,7 +70,7 @@ const categoryResolver = {
       }
     ),
 
-    deleteCategory: authorize.roles(['admin', 'author', 'developer'])(
+    deleteCategory: authorization.permit('canDeleteCategories')(
       async (_: unknown, args: { id: Category['_id'] }) => {
         const category = await Categories.findByIdAndDelete(args.id, {
           new: true,
