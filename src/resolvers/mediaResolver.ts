@@ -1,14 +1,14 @@
 import { deleteObject, getStorage, ref } from 'firebase/storage';
 import Medias, { Media } from '../models/media';
 import firebaseApp from '../config/firebase';
-import authorize from '../middlewares/authorizeMiddleware';
+import authorization from '../middlewares/authorization';
 import Users from '../models/user';
 
 const storage = getStorage(firebaseApp, process.env.FIREBASE_STORAGE_BUCKET);
 
 const mediaResolver = {
   Query: {
-    medias: authorize.roles(['admin', 'developer', 'reader'])(async () => {
+    medias: authorization.permit('canReadMedias')(async () => {
       const medias = await Medias.find();
 
       if (medias.length === 0) {
@@ -34,7 +34,7 @@ const mediaResolver = {
   },
 
   Mutation: {
-    deleteMedia: authorize.roles(['admin', 'developer', 'author'])(
+    deleteMedia: authorization.permit('canDeleteMedias')(
       async (_: unknown, args: { id: Media['_id'] }) => {
         const media = await Medias.findById(args.id);
 
@@ -52,7 +52,7 @@ const mediaResolver = {
         return deletedRecord;
       }
     ),
-    updateMedia: authorize.roles(['admin', 'author', 'developer'])(
+    updateMedia: authorization.permit('canEditMedias')(
       async (
         _: unknown,
         args: { id: Media['_id']; payload: Pick<Media, 'name' | 'alt'> }
