@@ -1,5 +1,4 @@
 import mongoose, { Schema, Types } from 'mongoose';
-import { Role } from './role';
 
 export type User = {
   _id: Types.ObjectId;
@@ -8,7 +7,7 @@ export type User = {
   lastName: string;
   firstName: string;
   image: Types.ObjectId;
-  role: Role['name'];
+  role: Types.ObjectId;
   status: 'deactivated' | 'activated' | 'pending';
 };
 
@@ -18,7 +17,12 @@ const schema = new Schema<User>({
   lastName: { type: String, lowercase: true },
   firstName: { type: String, lowercase: true },
   image: { type: Schema.Types.ObjectId, ref: 'Medias' },
-  role: { type: String, required: true, default: 'reader', ref: 'Roles' },
+  role: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: 'Roles',
+    default: '66c9f4760c750ad22dce3ee7',
+  },
   status: { type: String, required: true, lowercase: true, default: 'pending' },
 });
 
