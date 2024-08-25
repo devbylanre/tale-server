@@ -2,7 +2,8 @@ const roleTypeDefs = `#graphql
     type Role {
         _id: ID!
         name: String!
-        capabilities: [Capability!]
+        description: String!
+        capabilities: [Capability]
     }
 
     type Query {
@@ -12,11 +13,13 @@ const roleTypeDefs = `#graphql
 
     input CreateRolePayload {
         name: String!
+        description: String!
         capabilities: [ID!]
     }
 
     input EditRolePayload {
         name: String
+        description: String
         capabilities: [ID]
     }
 
