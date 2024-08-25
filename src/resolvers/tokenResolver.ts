@@ -1,13 +1,12 @@
-import authorize from '../middlewares/authorizeMiddleware';
+import authorization from '../middlewares/authorization';
 import Tokens, { Token } from '../models/token';
 import Users from '../models/user';
 import date from '../utils/date';
 import int from '../utils/int';
-import { checkUserRole } from '../utils/role';
 
 const tokenResolver = {
   Query: {
-    tokens: authorize.roles(['developer'])(async () => {
+    tokens: authorization.permit('canReadTokens')(async () => {
       const tokens = await Tokens.find();
 
       if (tokens.length === 0) {
@@ -17,7 +16,7 @@ const tokenResolver = {
       return tokens;
     }),
 
-    token: authorize.roles(['developer'])(
+    token: authorization.permit('canReadTokens')(
       async (_: unknown, args: { id: Token }) => {
         const token = await Tokens.findById(args.id);
 
