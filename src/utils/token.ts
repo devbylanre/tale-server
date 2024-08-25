@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import jwt from 'jsonwebtoken';
+import { User } from '../models/user';
 
 const tokenize = {
   sign: (type: 'access' | 'refresh', payload: string | object) => {
@@ -20,7 +21,7 @@ const tokenize = {
     if (token) {
       try {
         user = jwt.verify(token, secret);
-        return user;
+        return user as { id: User['_id'] };
       } catch (error) {
         console.error('JWT verification error:', error);
         throw new GraphQLError('Invalid or expired token', {
