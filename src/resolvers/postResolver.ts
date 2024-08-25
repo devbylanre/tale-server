@@ -1,4 +1,4 @@
-import authorize from '../middlewares/authorizeMiddleware';
+import authorization from '../middlewares/authorization';
 import Categories from '../models/category';
 import Comments from '../models/comment';
 import Posts, { Post } from '../models/post';
@@ -49,7 +49,7 @@ const postResolver = {
   },
 
   Mutation: {
-    createPost: authorize.roles()(
+    createPost: authorization.permit('canCreatePosts')(
       async (
         _: unknown,
         args: { payload: Omit<Post, '_id' | 'createdAt'> }
@@ -67,7 +67,7 @@ const postResolver = {
       }
     ),
 
-    updatePost: authorize.roles(['author', 'admin', 'developer'])(
+    updatePost: authorization.permit('canEditPosts')(
       async (
         _: unknown,
         args: {
@@ -87,7 +87,7 @@ const postResolver = {
       }
     ),
 
-    deletePost: authorize.roles(['admin', 'developer', 'author'])(
+    deletePost: authorization.permit('deletePosts')(
       async (_: unknown, args: { id: Post['_id'] }) => {
         const post = await Posts.findByIdAndDelete(args.id, { new: true });
 
