@@ -61,7 +61,7 @@ const authorization = {
     // throw error if user does not have the required capability
     if (!hasCapability) {
       throw new GraphQLError(
-        'Access revoked: you cannot access this resource',
+        `Restricted resource: you cannot access this resource as ${role.name}`,
         { extensions: { code: 'ROLE_ERROR' } }
       );
     }
@@ -74,7 +74,7 @@ const authorization = {
       return (source, args, context, info) => {
         const { req } = context;
 
-        const user = authorization.token(req.authorization);
+        const user = authorization.token(req.headers.authorization);
 
         context.user = user;
 
