@@ -1,14 +1,14 @@
 const mediaTypeDefs = `#graphql 
     type Media {
         _id: ID!
-        hash: String!
         name: String!
         path: String!
         size: Int!
         uri: String!
-        user: User
-        alt: String
+        alt: String!
+        type: String!
         createdAt: Float!
+        uploadedBy: User!
     }
 
     type Query {
