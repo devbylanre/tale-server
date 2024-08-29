@@ -27,9 +27,9 @@ const mediaResolver = {
   },
 
   Media: {
-    user: async (parent: Media) => {
-      const user = await Users.findOne({ _id: parent.user });
-      return user;
+    uploadedBy: async (parent: Media) => {
+      const uploadedBy = await Users.findOne({ _id: parent.uploadedBy });
+      return uploadedBy;
     },
   },
 
