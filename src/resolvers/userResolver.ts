@@ -15,18 +15,16 @@ const userResolver = {
       }
       return users;
     }),
-    user: authorization.permit('canReadUsers')(
-      async (_: any, __: any, context: any) => {
-        const ID = context.user.id;
-        const user = await Users.findById(ID);
+    user: authorization.grant()(async (_: any, __: any, context: any) => {
+      const ID = context.user.id;
+      const user = await Users.findById(ID);
 
-        if (user === null) {
-          throw new Error('Could not find user');
-        }
-
-        return user;
+      if (user === null) {
+        throw new Error('Could not find user');
       }
-    ),
+
+      return user;
+    }),
   },
 
   User: {
