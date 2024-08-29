@@ -2,7 +2,7 @@ import authorization from '../middlewares/authorization';
 import Tokens, { Token } from '../models/token';
 import Users from '../models/user';
 import date from '../utils/date';
-import int from '../utils/int';
+import random from '../utils/random';
 
 const tokenResolver = {
   Query: {
@@ -43,7 +43,7 @@ const tokenResolver = {
         user: user ? user._id : undefined,
       });
 
-      const code = int.random();
+      const code = random.ints();
       const expiresAt = date.at(); // 15 minute expiration time
 
       const data: Omit<Token, '_id'> | {} = user
